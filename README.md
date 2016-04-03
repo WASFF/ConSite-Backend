@@ -1,24 +1,59 @@
-## README
+# Convention Website
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+To be completed.
 
-Things you may want to cover:
+## Prerequisites
 
-* Ruby version
+You will need the following things properly installed on your computer.
 
-* System dependencies
+* [Git](http://git-scm.com/)
+* [RVM](http://rvm.io)
+* [Postgres](http://postgresql.org) (see Postgres below)
 
-* Configuration
+## Postgres
 
-* Database creation
+### Mac OS X
 
-* Database initialization
+I reccomend using the postgres app from [here](https://github.com/PostgresApp/PostgresApp/releases). This was developed with 9.3.7.0
 
-* How to run the test suite
+### Ubuntu
 
-* Services (job queues, cache servers, search engines, etc.)
+`apt-get install postgresql-9.1`
 
-* Deployment instructions
+## Installation
 
-* ...
+1. `git clone 'git@github.com:WASFF/ConSite-Backend.git'` this repository
+2. change into the new directory
+3. Install the version of ruby if prompted by RVM
+4. `bin/setup`
+
+## Running / Development
+
+* `rails s`
+* Server will be running at [http://localhost:3000] by default
+
+### After updating
+
+Stop all running rails servers/consoles and run `rake db:migrate`
+
+### Code Generators
+
+TO BE COMPLETED
+
+### Running Tests
+
+All tests are written in rspec, to run them:
+
+1. Ensure you have installed everything according to "Installation" and/or "After updating" above
+2. Run `rake db:test:prepare`
+3. Run `rspec spec`
+
+Enjoy Nyan Cat :D
+
+### Deploying
+
+TO BE COMPLETED
+
+## Further Reading / Useful Links
+
+TO BE COMPLETED

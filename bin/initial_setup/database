@@ -1,0 +1,70 @@
+#!/usr/bin/env ruby
+require 'yaml'
+require 'securerandom'
+require 'pg'
+
+def getcredentials(prompt, config = {username: "", random_password: false, allow_random_password: false})
+  print prompt.strip
+  print "\n"
+  username = config[:username]
+  if config[:random_password]
+    password = SecureRandom.hex(16)
+  else
+    password = ""
+  end
+  while username.empty?
+    print "Username: "
+    STDOUT.flush
+    username = STDIN.gets.chomp!
+  end
+  while password.empty?
+    print "Password: "
+    STDOUT.flush
+    password = STDIN.gets.chomp!
+    password = SecureRandom.hex(16) if config[:allow_random_password] && password.empty?
+  end
+
+  {username: username, password: password}
+end
+
+config = File.open("config/database.yml.sample").read
+configyaml = YAML.load(config)
+
+root_user = getcredentials("Please enter your root postgres username/password")
+
+password = SecureRandom.hex(16)
+["development", "test"].each do |environment|
+  print "Setting up #{environment} environment\n"
+  current_config = configyaml[environment]
+
+  db_connection = PG::Connection.new(
+    current_config["host"],
+    current_config["port"],
+    "", # options
+    "", # tty
+    "postgres", # database name
+    root_user[:username],
+    root_user[:password])
+
+  username = current_config["username"]
+  current_config["password"] = password
+  results = db_connection.exec("SELECT rolname FROM pg_roles").values.flatten
+  unless results.include?(username)
+    db_connection.exec("CREATE ROLE #{username} LOGIN ENCRYPTED PASSWORD '#{password}' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION")
+  else
+    print "Username already exists - Changing Password\n"
+    db_connection.exec("ALTER USER #{username} WITH PASSWORD '#{password}'")
+  end
+
+  results = db_connection.exec("SELECT datname FROM pg_database").values.flatten
+  unless results.include?(current_config["database"])
+    db_connection.exec("CREATE DATABASE #{current_config["database"]} with OWNER = #{username} ENCODING 'UTF8' TABLESPACE = pg_default  CONNECTION LIMIT = -1")
+  else
+    print "Database already exists!\n"
+  end
+end
+
+config = YAML.dump(configyaml)
+configfile = File.open("config/database.yml", 'w')
+configfile.write(config)
+configfile.close
